@@ -14,6 +14,6 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 
 // Protected routes
-Route::group(function () {
-    // Route::get('/tasks', [TaskController::class, 'index']);
-})->middleware('auth:sanctum');
+// Route::group(function () {
+//     // Route::get('/tasks', [TaskController::class, 'index']);
+// })->middleware('auth:sanctum');
