@@ -16,7 +16,7 @@ return new class extends Migration
             $table->id();
             $table->string('title');
             $table->text('description')->nullable();
-            $table->enum('status', [TaskEnum::PENDING, TaskEnum::COMPLETED, TaskEnum::CANCELED]);
+            $table->enum('status', [TaskEnum::PENDING, TaskEnum::COMPLETED, TaskEnum::CANCELED])->default(TaskEnum::PENDING);
             $table->foreignId('assignee_id')->nullable()->constrained('users');
             $table->foreignId('dependency_of')->nullable()->constrained('tasks');
             $table->dateTime('due_date_from')->nullable();

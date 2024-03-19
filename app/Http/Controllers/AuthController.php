@@ -27,7 +27,7 @@ class AuthController extends Controller
         $user = User::where('email', $request->email)->first();
         $token =  $user->createToken("Login Token for" . $user->name)->plainTextToken;
 
-        return $this->sucess(
+        return $this->success(
             [
                 "user" => $user,
                 "token" => $token
@@ -40,7 +40,7 @@ class AuthController extends Controller
         $validated = $request->validated();
         $user = User::create($validated);
 
-        return $this->sucess([
+        return $this->success([
             "user" => $user,
             "token" => $user->createToken("Register Token for" . $user->name)->plainTextToken
         ],);
