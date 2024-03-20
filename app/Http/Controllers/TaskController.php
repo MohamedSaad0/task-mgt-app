@@ -27,7 +27,7 @@ class TaskController extends Controller
         try {
             $authenticatedUser = Auth::user();
             if (!$authenticatedUser->is_admin) {
-                return $this->error("", "Your are not authorized to perform this action", 404);
+                return $this->error("", "Your are not authorized to perform this action", 403);
             }
 
             $status = $request->query('status');
@@ -70,7 +70,7 @@ class TaskController extends Controller
         $authenticatedUser = Auth::user()->is_admin;
         // return $authenticatedUser;
         if (!$authenticatedUser) {
-            return $this->error("", "Your are not authorized to perform this action", 404);
+            return $this->error("", "Your are not authorized to perform this action", 403);
         }
         try {
             $validated = $request->validated();
@@ -120,7 +120,7 @@ class TaskController extends Controller
         $assignee_id = $task->assignee_id;
         // return $authenticatedUser;
         if (!$authenticatedUser->is_admin || ($authenticatedUser->id !== $assignee_id)) {
-            return $this->error("", "Your are not authorized to perform this action", 404);
+            return $this->error("", "Your are not authorized to perform this action", 403);
         }
 
         try {
@@ -133,7 +133,7 @@ class TaskController extends Controller
             if (!$dependetsCompleted) {
                 $taskDependencies = $task->dependents;
                 $data = $taskDependencies->pluck("title");
-                return $this->error(['task title' => $data], 'Please complete the following tasks to current completed', 500);
+                return $this->success(['task title' => $data], 'Please complete the following tasks to current completed', 200);
             }
 
             $task->update([
@@ -142,7 +142,7 @@ class TaskController extends Controller
 
             return $this->success($task, 'Task status updated successfully', 200);
         } catch (Exception $e) {
-            return $this->error($e->getMessage(), 'Failed updating task status', 500);
+            return $this->error($e->getMessage(), 'Failed updating task status', 400);
         }
     }
 
