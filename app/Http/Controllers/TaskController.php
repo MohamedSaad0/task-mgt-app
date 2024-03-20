@@ -42,7 +42,7 @@ class TaskController extends Controller
             }
 
             if ($assigneeId) {
-                $tasks->where('assignee_id', '>=', $request->assignee_id);
+                $tasks->where('assignee_id', '=', $request->assignee_id);
             }
 
             if ($dueDateFrom) {

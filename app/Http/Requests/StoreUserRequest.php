@@ -26,7 +26,7 @@ class StoreUserRequest extends FormRequest
             "name" => 'required|string|max:255',
             "email" => 'required|email|max:255|unique:users',
             "password" => ['required', 'confirmed'],
-            // 'password' => ['required', 'confirmed', Password::defaults()], //Hashed to facilitate testing
+            "is_admin" => 'numeric',
         ];
     }
 }

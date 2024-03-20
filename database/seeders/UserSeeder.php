@@ -16,6 +16,36 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        User::factory(10)->create();
+        // User::factory(10)->create();
+        User::insert([
+            [
+                'name' => 'Johnny Depp',
+                'email' => 'john@example.com',
+                'email_verified_at' => now(),
+                'password' => Hash::make('secret'),
+                'remember_token' => Str::random(10),
+            ],
+            [
+                'name' => 'Chris Hemsworth',
+                'email' => 'chris@example.com',
+                'email_verified_at' => now(),
+                'password' => Hash::make('secret'),
+                'remember_token' => Str::random(10),
+            ],
+            [
+                'name' => 'Morgan Freeman',
+                'email' => 'morgan@example.com',
+                'email_verified_at' => now(),
+                'password' => Hash::make('secret'),
+                'remember_token' => Str::random(10),
+            ],
+            [
+                'name' => 'Tom Hanks',
+                'email' => 'Tom@example.com',
+                'email_verified_at' => now(),
+                'password' => Hash::make('secret'),
+                'remember_token' => Str::random(10),
+            ],
+        ]);
     }
 }
