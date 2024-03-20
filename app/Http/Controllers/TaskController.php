@@ -4,10 +4,12 @@ namespace App\Http\Controllers;
 
 use Exception;
 use App\Models\Task;
-use Illuminate\Http\Request;
 use App\Traits\HttpResponses;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\TasksResource;
+use App\Http\Requests\TaskStoreRequest;
+use App\Http\Requests\TaskUpdateRequest;
+use App\Http\Requests\TaskStatusUpdateRequest;
 
 class TaskController extends Controller
 {
@@ -27,19 +29,14 @@ class TaskController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(TaskStoreRequest $request)
     {
-        //
+        $validated = $request->validated();
+        $task = Task::create($validated);
+
+        return $this->success($task, "New task created successfully", 201);
     }
 
     /**
@@ -47,34 +44,64 @@ class TaskController extends Controller
      */
     public function show(Task $task)
     {
-        $user = Auth::user()->id;
-        return $user->tasks;
+        $user = Auth::user();
         return TasksResource::collection(
-            Task::where('assignee_id', Auth::user()->id)->get()
+            Task::all()->where('assignee_id', $user->id)
         );
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Task $task)
-    {
-        //
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Task $task)
+    public function updateTask(TaskUpdateRequest  $request, Task $task)
     {
-        //
+        try {
+            $validated = $request->validated();
+            $task->update([
+                "title" => $validated['title'],
+                'description' => $validated['description'],
+                'assignee_id' => $validated['assignee_id'],
+                'due_date_to' => $validated['due_date_to'],
+            ]);
+
+            return $this->success($task, 'Task updated successfully', 200);
+        } catch (Exception $e) {
+            return $this->error($e->getMessage(), 'Failed to update task', 500);
+        }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Task $task)
+    public function updateTaskStatus(TaskStatusUpdateRequest  $request, Task $task)
     {
-        //
+        try {
+            $taskDependencies = $task->dependents;
+            $dependetsCompleted = $taskDependencies->every(function ($task) {
+                return $task->status === "completed";
+            });
+
+            $validated = $request->validated();
+            if (!$dependetsCompleted) {
+                $taskDependencies = $task->dependents;
+                $data = $taskDependencies->pluck("title");
+                return $this->error(['task title' => $data], 'Please complete the following tasks to current completed', 500);
+            }
+
+            $task->update([
+                "status" => $validated['status'],
+            ]);
+
+            return $this->success($task, 'Task status updated successfully', 200);
+        } catch (Exception $e) {
+            return $this->error($e->getMessage(), 'Failed to update task status', 500);
+        }
+    }
+
+    public function showDetails(Task $task)
+    {
+        try {
+            $taskDetails = TasksResource::collection(Task::all()->where('id', $task->id));
+            return $this->success($taskDetails, "Task details retrieved successfully", 200);
+        } catch (Exception $e) {
+            return $this->error("", 'Failed to update task', 500);
+        }
     }
 }

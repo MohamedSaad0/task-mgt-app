@@ -15,8 +15,17 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'register']);
 
 // Protected routes
-Route::group(['middleware' => ['auth:sanctum']], function () {
-    Route::get('/tasks', [TaskController::class, 'index']);
-    Route::get('/tasks', [TaskController::class, 'index']);
-    Route::get('/tasks/user', [TaskController::class, 'show']);
+Route::group(['middleware' => ['auth:sanctum'], 'prefix' => 'tasks'], function () {
+    Route::get('/', [TaskController::class, 'index']);
+
+    Route::get('/user', [TaskController::class, 'show']);
+
+
+    Route::post('tasks', [TaskController::class, 'store']);
+
+    Route::put('{task}', [TaskController::class, 'updateTask']);
+    Route::put('{task}/status', [TaskController::class, 'updateTaskStatus']);
+    Route::post('{task}/dependencies', [TaskController::class, 'addDependencies']);
+
+    Route::get('{task}/details', [TaskController::class, 'showDetails']);
 })->middleware('auth:sanctum');

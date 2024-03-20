@@ -16,18 +16,6 @@ class TaskFactory extends Factory
      *
      * @return array<string, mixed>
      */
-    // public function definition(): array
-    // {
-    //     return [
-    //         "title" => $this->faker->sentence(),
-    //         "description" => $this->faker->text(),
-    //         "status" => $this->faker->randomElement(["pending", "completed", "canceled"]),
-    //         "assignee_id" => User::inRandomOrder()->first()->id,
-    //         "dependency_of" => Task::inRandomOrder()->first()->id,
-    //         "due_date_from" => $this->faker->dateTimeBetween('now', '+1 week'),
-    //         "due_date_to" => $this->faker->dateTimeBetween('+1 week', '+2 weeks')
-    //     ];
-    // }
     public function definition(): array
     {
         return [
