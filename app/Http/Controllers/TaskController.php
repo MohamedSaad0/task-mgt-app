@@ -2,13 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use Log;
 use Exception;
 use App\Models\Task;
+use Illuminate\Http\Request;
 use App\Traits\HttpResponses;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Resources\TasksResource;
 use App\Http\Requests\TaskStoreRequest;
+use App\Http\Requests\TaskAssignRequest;
 use App\Http\Requests\TaskUpdateRequest;
+use App\Http\Requests\TaskDependencyRequest;
 use App\Http\Requests\TaskStatusUpdateRequest;
 
 class TaskController extends Controller
@@ -17,11 +22,40 @@ class TaskController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $tasks = TasksResource::collection(Task::get());
-            return $this->success($tasks, "Data retrieved successfully");
+            $authenticatedUser = Auth::user();
+            if (!$authenticatedUser->is_admin) {
+                return $this->error("", "Your are not authorized to perform this action", 404);
+            }
+
+            $status = $request->query('status');
+            $assigneeId = $request->query('assignee_id');
+            $dueDateFrom = $request->query('due_date_from');
+            $dueDateTo = $request->query('due_date_to');
+
+            $tasks = Task::query();
+
+            if ($status) {
+                $tasks->where('status', $request->status);
+            }
+
+            if ($assigneeId) {
+                $tasks->where('assignee_id', '>=', $request->assignee_id);
+            }
+
+            if ($dueDateFrom) {
+                $tasks->where('due_date_from', '>=', $request->due_date_from);
+            }
+            if ($dueDateTo) {
+                $tasks->where('due_date_to', '<=', $request->due_date_to);
+            }
+            // return $dueDateTo;
+            // return  $sql = $tasks->toSql();
+
+            $filteredTasks = TasksResource::collection($tasks->get());
+            return $this->success($filteredTasks, "Data retrieved successfully");
         } catch (Exception $e) {
 
             return $this->error("", "No data were found", 404);
@@ -33,16 +67,25 @@ class TaskController extends Controller
      */
     public function store(TaskStoreRequest $request)
     {
-        $validated = $request->validated();
-        $task = Task::create($validated);
+        $authenticatedUser = Auth::user()->is_admin;
+        // return $authenticatedUser;
+        if (!$authenticatedUser) {
+            return $this->error("", "Your are not authorized to perform this action", 404);
+        }
+        try {
+            $validated = $request->validated();
+            $task = Task::create($validated);
 
-        return $this->success($task, "New task created successfully", 201);
+            return $this->success($task, "New task created successfully", 201);
+        } catch (Exception $e) {
+            return $this->error("", 'Failed to create task', 500);
+        }
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Task $task)
+    public function tasksAssignedToCurrentUser()
     {
         $user = Auth::user();
         return TasksResource::collection(
@@ -72,6 +115,14 @@ class TaskController extends Controller
 
     public function updateTaskStatus(TaskStatusUpdateRequest  $request, Task $task)
     {
+
+        $authenticatedUser = Auth::user();
+        $assignee_id = $task->assignee_id;
+        // return $authenticatedUser;
+        if (!$authenticatedUser->is_admin || ($authenticatedUser->id !== $assignee_id)) {
+            return $this->error("", "Your are not authorized to perform this action", 404);
+        }
+
         try {
             $taskDependencies = $task->dependents;
             $dependetsCompleted = $taskDependencies->every(function ($task) {
@@ -91,7 +142,36 @@ class TaskController extends Controller
 
             return $this->success($task, 'Task status updated successfully', 200);
         } catch (Exception $e) {
-            return $this->error($e->getMessage(), 'Failed to update task status', 500);
+            return $this->error($e->getMessage(), 'Failed updating task status', 500);
+        }
+    }
+
+    public function addDependencies(TaskDependencyRequest $request, Task $task)
+    {
+        try {
+            $validated = $request->validated();
+            $task->update([
+                "dependency_of" => $validated["dependency_of"]
+            ]);
+
+            return $this->success($task, 'Task dependencies updated successfully', 200);
+        } catch (Exception $e) {
+            return $this->error("", "Invalid task", 400);
+        }
+    }
+
+    public function assignTask(TaskAssignRequest $request, Task $task)
+    {
+        try {
+            $validated = $request->validated();
+            if ($validated) {
+                $task->update([
+                    "assignee_id" => $validated["assignee_id"]
+                ]);
+                return $this->success($task, "Task assigned successfully", 200);
+            }
+        } catch (Exception $e) {
+            return $this->error("", "Failed to assign task", 400);
         }
     }
 
