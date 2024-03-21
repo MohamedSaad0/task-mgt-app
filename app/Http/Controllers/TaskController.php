@@ -8,6 +8,7 @@ use App\Models\Task;
 use Illuminate\Http\Request;
 use App\Traits\HttpResponses;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use App\Http\Requests\TaskStoreRequest;
 use App\Http\Requests\TaskAssignRequest;
 use App\Http\Requests\TaskUpdateRequest;
@@ -42,8 +43,9 @@ class TaskController extends Controller
      */
     public function store(TaskStoreRequest $request)
     {
-        $authenticatedUser = Auth::user()->is_admin;
-        if (!$authenticatedUser) {
+        $adminPrivilegeCheck = Gate::inspect('admin-privileges', [Auth::user()]);
+
+        if (!$adminPrivilegeCheck->allowed()) {
             return $this->error("", "Your are not authorized to perform this action", 403);
         }
 
@@ -56,7 +58,7 @@ class TaskController extends Controller
      */
     public function tasksAssignedToCurrentUser()
     {
-        return $categories = $this->taskService->tasksAssignedToCurrentUser();
+        return $this->taskService->tasksAssignedToCurrentUser();
     }
 
     /**
@@ -64,21 +66,27 @@ class TaskController extends Controller
      */
     public function updateTask(TaskUpdateRequest  $request, Task $task)
     {
+
+        $adminPrivilegeCheck = Gate::inspect('admin-privileges', [Auth::user()]);
+
+        if (!$adminPrivilegeCheck->allowed()) {
+            return $this->error("", "Your are not authorized to perform this action", 403);
+        }
         $validated = $request->validated();
         return $this->taskService->updateTask($validated, $task);
     }
 
     public function updateTaskStatus(TaskStatusUpdateRequest  $request, Task $task)
     {
+        $taskOwnerCheck  = Gate::inspect('task-owner', [$task, Auth::user()]);
+        $adminPrivilegeCheck = Gate::inspect('admin-privileges', Auth::user());
 
-        $authenticatedUser = Auth::user();
-        $assignee_id = $task->assignee_id;
-        if (!$authenticatedUser->is_admin && ($authenticatedUser->id !== $assignee_id)) {
-            return $this->error("", "Your are not authorized to perform this action", 403);
+        if ($taskOwnerCheck->allowed() || $adminPrivilegeCheck->allowed()) {
+
+            $validated = $request->validated();
+            return $this->taskService->updateTaskStatus($validated, $task);
         }
-
-        $validated = $request->validated();
-        return $this->taskService->updateTaskStatus($validated, $task);
+        return $this->error("", "Your are not authorized to perform this action", 403);
     }
 
     public function addDependencies(TaskDependencyRequest $request, Task $task)
@@ -89,8 +97,13 @@ class TaskController extends Controller
 
     public function assignTask(TaskAssignRequest $request, Task $task)
     {
-        $validated = $request->validated();
-        return $this->taskService->assignTask($validated, $task);
+        $authCheck = Gate::inspect('admin-privileges', Auth::user());
+        if ($authCheck->allowed()) {
+            $validated = $request->validated();
+            return $this->taskService->assignTask($validated, $task);
+        } else {
+            return $this->error("", "Your are not authorized to perform this action", 403);
+        }
     }
 
     public function showDetails(Task $task)
