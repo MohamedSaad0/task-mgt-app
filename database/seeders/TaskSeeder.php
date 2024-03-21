@@ -24,8 +24,8 @@ class TaskSeeder extends Seeder
                 "status" => "pending",
                 "assignee_id" => 1,
                 "dependency_of" => null,
-                "due_date_from" => now(),
-                "due_date_to" => now()->addDays(7)
+                "due_date_from" => now()->startOfDay()->addHours(mt_rand(9, 14)),
+                "due_date_to" => now()->startOfDay()->addDays(7)->addHours(mt_rand(9, 14))
             ],
             [
                 "title" => "Going to work",
@@ -33,8 +33,8 @@ class TaskSeeder extends Seeder
                 "status" => "pending",
                 "assignee_id" => 1,
                 "dependency_of" => 1,
-                "due_date_from" => now(),
-                "due_date_to" => now()->addDays(4)
+                "due_date_from" => now()->startOfDay()->addDays(2)->addHours(mt_rand(9, 14)),
+                "due_date_to" => now()->startOfDay()->addDays(7)->addHours(mt_rand(9, 14))
             ],
             [
                 "title" => "Waking up",
@@ -42,8 +42,8 @@ class TaskSeeder extends Seeder
                 "status" => "completed",
                 "assignee_id" => 1,
                 "dependency_of" => 2,
-                "due_date_from" => now()->addDays(10),
-                "due_date_to" => now()->addDays(15)
+                "due_date_from" => now()->startOfDay()->addDays(5)->addHours(mt_rand(9, 14)),
+                "due_date_to" => now()->startOfDay()->addDays(10)->addHours(mt_rand(9, 14))
             ],
             [
                 "title" => "Writing SRS",
@@ -51,8 +51,8 @@ class TaskSeeder extends Seeder
                 "status" => "completed",
                 "assignee_id" => 2,
                 "dependency_of" => null,
-                "due_date_from" => now()->addDays(2),
-                "due_date_to" => now()->addDays(3)
+                "due_date_from" => now()->startOfDay()->addDays(10)->addHours(mt_rand(9, 14)),
+                "due_date_to" => now()->startOfDay()->addDays(12)->addHours(mt_rand(9, 14))
             ],
             [
                 "title" => "Making URS",
@@ -60,8 +60,8 @@ class TaskSeeder extends Seeder
                 "status" => "pending",
                 "assignee_id" => 2,
                 "dependency_of" => 5,
-                "due_date_from" => now()->addDays(20),
-                "due_date_to" => now()->addDays(23)
+                "due_date_from" => now()->startOfDay()->addDays(3)->addHours(mt_rand(9, 14)),
+                "due_date_to" => now()->startOfDay()->addDays(4)->addHours(mt_rand(9, 14))
             ]
         ]);
     }

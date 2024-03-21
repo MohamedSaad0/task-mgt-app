@@ -87,10 +87,15 @@ class TaskController extends Controller
      */
     public function tasksAssignedToCurrentUser()
     {
-        $user = Auth::user();
-        return TasksResource::collection(
-            Task::all()->where('assignee_id', $user->id)
-        );
+        try {
+
+            $user = Auth::user();
+            return TasksResource::collection(
+                Task::all()->where('assignee_id', $user->id)
+            );
+        } catch (Exception $e) {
+            return $this->error('', 'Failed to assign task', 500);
+        }
     }
 
     /**
@@ -109,7 +114,7 @@ class TaskController extends Controller
 
             return $this->success($task, 'Task updated successfully', 200);
         } catch (Exception $e) {
-            return $this->error($e->getMessage(), 'Failed to update task', 500);
+            return $this->error("", 'Failed to update task', 500);
         }
     }
 
@@ -119,7 +124,7 @@ class TaskController extends Controller
         $authenticatedUser = Auth::user();
         $assignee_id = $task->assignee_id;
         // return $authenticatedUser;
-        if (!$authenticatedUser->is_admin || ($authenticatedUser->id !== $assignee_id)) {
+        if (!$authenticatedUser->is_admin && ($authenticatedUser->id !== $assignee_id)) {
             return $this->error("", "Your are not authorized to perform this action", 403);
         }
 
@@ -132,8 +137,8 @@ class TaskController extends Controller
             $validated = $request->validated();
             if (!$dependetsCompleted) {
                 $taskDependencies = $task->dependents;
-                $data = $taskDependencies->pluck("title");
-                return $this->success(['task title' => $data], 'Please complete the following tasks to current completed', 200);
+                $data = $taskDependencies->pluck("title", "id");
+                return $this->success([$data], 'Please complete the following tasks to mark the current completed', 200);
             }
 
             $task->update([

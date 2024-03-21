@@ -24,6 +24,7 @@ class UserSeeder extends Seeder
                 'email_verified_at' => now(),
                 'password' => Hash::make('secret'),
                 'remember_token' => Str::random(10),
+                'is_admin' => '1'
             ],
             [
                 'name' => 'Chris Hemsworth',
@@ -31,6 +32,7 @@ class UserSeeder extends Seeder
                 'email_verified_at' => now(),
                 'password' => Hash::make('secret'),
                 'remember_token' => Str::random(10),
+                'is_admin' => '0' 
             ],
             [
                 'name' => 'Morgan Freeman',
@@ -38,6 +40,7 @@ class UserSeeder extends Seeder
                 'email_verified_at' => now(),
                 'password' => Hash::make('secret'),
                 'remember_token' => Str::random(10),
+                'is_admin' => '0'
             ],
             [
                 'name' => 'Tom Hanks',
@@ -45,6 +48,7 @@ class UserSeeder extends Seeder
                 'email_verified_at' => now(),
                 'password' => Hash::make('secret'),
                 'remember_token' => Str::random(10),
+                'is_admin' => '0'
             ],
         ]);
     }
